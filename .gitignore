@@ -1,0 +1,27 @@
+# AWS 키 파일 무시
+*.pem
+
+# 테라폼 상태 파일 무시 (중요한 정보가 들어있을 수 있음)
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Python 관련
+__pycache__/
+*.pyc
+venv/
+
+# IDE 및 OS 관련
+.vscode/
+.DS_Store
+
+# 환경 변수 무시
+.env
+
+# 빌드 산출물 및 캐시 제외
+.gradle/
+build/
+bin/
+__pycache__/
+*.pyc

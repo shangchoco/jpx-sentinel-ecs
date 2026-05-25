@@ -1,0 +1,68 @@
+services:
+  # 크롬 브라우저를 담당하는 녀석
+  chrome:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+
+  # MySQL 데이터베이스 컨테이너
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword  # 루트 비밀번호
+      MYSQL_DATABASE: jpx_database       # 자동으로 생성할 데이터베이스 이름
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql        # 도커가 꺼져도 데이터가 날아가지 않게 저장
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      # 변경된 부분: root 패스워드를 명시하여 명확하게 핑을 날립니다.
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 내 파이썬 코드가 돌아가는 곳
+  app:
+    build: .
+    environment:
+      - PYTHONUNBUFFERED=1  # 💡 이게 중요: 출력을 버퍼링 없이 즉시 터미널로 보냄
+    image: python:3.13-slim
+    volumes:
+      - .:/app
+    working_dir: /app
+    ports:
+      - "5000:5000"
+    depends_on:
+      chrome:
+        condition: service_started       # chrome은 켜지기만 하면 바로 연동 가능
+      db:
+        condition: service_healthy       # db는 헬스체크(정상 구동) 완료 후 연동
+    command: python main.py
+    # 대안: 만약 Dockerfile에 필요한 패키지 설치가 안 되어 있다면 아래 기존 명령어를 유지하셔도 됩니다.
+    # command: sh -c "pip install selenium flask && python main.py"
+
+# ★ 새로 영입된 스프링부트 메인 서버 서비스 설정 ★
+  backend:
+    build: 
+      # context는 도커가 빌드할 때 기준이 되는 폴더 위치입니다.
+      # 현재 위치(./) 기준으로 'backend'라는 폴더 안으로 들어가라는 뜻입니다.
+      context: ./backend 
+      
+      # 도커가 읽어야 할 파일명입니다. 
+      # 위에서 지정한 backend 폴더 안에 있는 'Dockerfile'을 읽어서 빌드합니다.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # 외부 윈도우 주소창에서 8080 포트로 접속할 수 있게 포트 개방
+    depends_on:
+      db:
+        # 데이터베이스 컨테이너가 완벽히 건강(Healthy)해질 때까지 
+        # 스프링부트는 부팅하지 않고 대기하라는 아주 중요한 인프라 옵션입니다.
+        condition: service_healthy
+
+volumes:
+  mysql_data:
