@@ -1,3 +1,4 @@
+import os
 import time
 import pymysql
 import pymysql.cursors
@@ -6,14 +7,20 @@ def get_db_connection(include_db=True):
     """MySQL 연결을 반환합니다. (DB 부팅 대기용 재시도 로직 포함)"""
     max_retries = 10     # 최대 10번 재시도
     retry_interval = 2   # 2초 간격으로 시도 (총 20초 대기)
+
+    #host 및 접속 정보를 환경 변수에서 가져오도록 변경 (운영 환경 대응)
+    rds_host = os.environ.get('DB_HOST', 'terraform-20260525123822698800000001.cxsu6ggc65n5.ap-northeast-1.rds.amazonaws.com')
+    db_user = os.environ.get('DB_USER', 'admin')
+    db_password = os.environ.get('DB_PASSWORD', 'Password123!')
+    db_name = os.environ.get('DB_NAME', 'jpx_database')
     
     for attempt in range(max_retries):
         try:
             conn = pymysql.connect(
-                host='db',
-                user='root',
-                password='rootpassword',
-                database='jpx_database' if include_db else None,
+                host=rds_host,
+                user=db_user,
+                password=db_password,
+                database=db_name if include_db else None,
                 charset='utf8mb4',  # 일본어 깨짐 방지 세팅
                 cursorclass=pymysql.cursors.DictCursor
             )

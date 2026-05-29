@@ -1,3 +1,4 @@
+import os
 import traceback
 from flask import Flask, jsonify
 from scraper import run_scraper
@@ -7,10 +8,20 @@ from slack_alarm import send_slack_alarm
 app = Flask(__name__)
 app.json.ensure_ascii = False
 
+# [운영 환경 제어] ECS 환경 변수에서 MODE를 읽어와 DB 초기화 여부를 결정합니다.
+# PRODUCTION 모드에서는 DB 초기화를 건너뛰어 안정성을 확보합니다.
+APP_MODE = os.environ.get("APP_MODE", "PRODUCTION")
+
+print(f"--- [시스템] 서버 모드: {APP_MODE} ---")
 print("--- [디버그] Flask 서버 실행 시도 중 ---")
-# 앱 구동 시 DB 테이블 자동 생성
-init_db()
-print("--- [디버그] DB 초기화 완료, 라우트 정의 시작 ---")
+
+if APP_MODE == "DEV":
+    # 앱 구동 시 DB 테이블 자동 생성
+    print("--- [디버그] 개발 모드: DB 테이블 자동 생성 시도 ---")
+    init_db()
+    print("--- [디버그] DB 초기화 완료, 라우트 정의 시작 ---")
+else:
+    print("--- [시스템] 운영 모드: DB 초기화 과정을 생략합니다. ---")
 
 def process_and_alarm(item):
     """
@@ -41,7 +52,11 @@ def process_and_alarm(item):
         
     return False # 중복 데이터였음
 
-@app.route("/scrape", methods=["GET"])
+@app.route("/", methods=["GET"])
+def health_check():
+    return "OK", 200
+
+@app.route("/python/scrape", methods=["GET"])
 def trigger_scraper():
 
     print("--------------------------------------------------")
@@ -88,4 +103,5 @@ def trigger_scraper():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    # 포트 8080은 root 권한이 필요하므로, ECS 환경에 맞게 8080으로 설정했습니다.
+    app.run(host="0.0.0.0", port=8080, debug=False)

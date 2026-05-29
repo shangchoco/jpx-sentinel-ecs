@@ -1,19 +1,17 @@
-# [1단계] 빌드 전용 가스레인지: 도커 안에서 자바 소스코드를 압축하는 기계입니다.
-FROM gradle:8.7.0-jdk17 AS build
-WORKDIR /app
-
-# 내 컴퓨터의 소스코드를 도커의 빌드 기계 안으로 싹 복사합니다.
-COPY . .
-
-# 도커 내부에서 gradlew 파일 없이 직접 그레이들 빌드 명령을 내려 .jar 파일을 뽑아냅니다.
-RUN gradle build -x test --no-daemon
-
-# [2단계] 실행 전용 가스레인지: 압축된 파일만 가지고 가볍게 실행하는 본체입니다.
+# [실행 전용 환경]
+# 로컬에서 빌드된 JAR 파일을 바로 실행하기 위해 가벼운 JRE 환경을 사용합니다.
 FROM eclipse-temurin:17-jre-alpine
+
+# 컨테이너 내부의 작업 디렉토리를 /app으로 설정합니다.
 WORKDIR /app
 
-# 1단계 기계가 열심히 압축해 놓은 결과물(.jar)만 쏙 빼와서 실행용 그릇에 담습니다.
-COPY --from=build /app/build/libs/*-SNAPSHOT.jar app.jar
+# [중요] 아까 만드신 .jar 파일을 컨테이너 내부로 복사합니다.
+# 로컬 경로: build/libs/backend-0.0.1-SNAPSHOT.jar
+# 컨테이너 경로: /app/app.jar
+COPY backend/build/libs/backend-0.0.1-SNAPSHOT.jar app.jar
 
+# 컨테이너가 외부로 노출할 포트
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+
+# 애플리케이션 실행 명령
+ENTRYPOINT ["java", "-jar", "app.jar"]

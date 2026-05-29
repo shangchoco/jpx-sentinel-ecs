@@ -1,8 +1,10 @@
+import os
 import requests
 
 def send_slack_alarm(stock_name, stock_code, delisting_date, link=None):
     # 💡 본인의 Webhook URL
-    webhook_url = "PLACEHOLDER_FOR_SLACK_WEBHOOK"
+    # 환경 변수에서 URL을 읽어옵니다.
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
     
     # 링크가 있을 경우 필드에 추가하거나 텍스트에 포함
     # 여기서는 상장폐지 예정일 아래에 깔끔하게 배치.

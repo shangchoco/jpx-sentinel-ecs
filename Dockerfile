@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 5. 플라스크가 사용할 5000번 포트 개방
-EXPOSE 5000
+EXPOSE 80
 
 # 6. 도커 컨테이너가 켜질 때 플라스크 앱 자동 실행
 CMD ["python", "main.py"]

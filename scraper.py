@@ -85,7 +85,7 @@ def run_scraper():
     options.add_experimental_option('useAutomationExtension', False)
 
     driver = webdriver.Remote(
-        command_executor="http://chrome:4444/wd/hub", options=options
+        command_executor="http://localhost:4444/wd/hub", options=options
     )
 
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")

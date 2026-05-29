@@ -1,12 +1,16 @@
+server:
+  port: 8080
+
 spring:
   datasource:
-    url: jdbc:mysql://db:3306/jpx_database?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Tokyo
-    username: root
-    password: rootpassword
+    # RDS 엔드포인트가 적용된 URL입니다.
+    url: jdbc:mysql://terraform-20260525123822698800000001.cxsu6ggc65n5.ap-northeast-1.rds.amazonaws.com:3306/jpx_database?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Tokyo
+    username: admin
+    password: Password123!
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: validate # 중요: 파이썬이 만든 테이블 구조를 절대로 건드리지 않고 '검증'만 합니다.
-    show-sql: true       # 스프링부트가 DB에 날리는 쿼리를 콘솔에 예쁘게 찍어줍니다.
+      ddl-auto: validate
+    show-sql: true

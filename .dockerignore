@@ -1,0 +1,13 @@
+# 도커 이미지에 포함시키지 않을 파일 및 폴더
+init_db.py
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.env
+.vscode
+.idea
+venv
+.venv
