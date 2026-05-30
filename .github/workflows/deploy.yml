@@ -35,14 +35,14 @@ jobs:
           ./gradlew build
 
       # 4-1. 첫 번째 도커 이미지 빌드 및 푸시 (jpx-java)
-      # backend 폴더 내의 Dockerfile을 사용하여 빌드합니다.
+      # 프로젝트 루트(.)를 컨텍스트로 잡고 backend/Dockerfile을 사용합니다.
       - name: Build, tag, and push first image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: jpx-java # 첫 번째 리포지토리 이름
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/Dockerfile ./backend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # 4-2. 두 번째 도커 이미지 빌드 및 푸시 (jpx-python)
@@ -57,7 +57,4 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # 5. ECS 서비스 업데이트 (새 이미지로 교체)
-      # 두 리포지토리 중 하나라도 새 이미지가 반영되어야 하므로 서비스 강제 재배포를 수행합니다.
-      - name: Update ECS service
-        run: |
-          aws ecs update-service --cluster jpx-cluster --service jpx-python-service --force-new-deployment
+      # 두 리포지토리 중 하나라도 새 이미지가 반영되어야 하므로 서비스 강제 재배포를 수행
