@@ -1,5 +1,6 @@
 import os
 import traceback
+import sys  # 추가: 프로세스 종료를 위해 필요
 from flask import Flask, jsonify
 from scraper import run_scraper
 from database import init_db, save_to_db
@@ -10,17 +11,20 @@ app.json.ensure_ascii = False
 
 # [운영 환경 제어] ECS 환경 변수에서 MODE를 읽어와 DB 초기화 여부를 결정합니다.
 # PRODUCTION 모드에서는 DB 초기화를 건너뛰어 안정성을 확보합니다.
-APP_MODE = os.environ.get("APP_MODE", "PRODUCTION")
+# BATCH 모드 추가: ECS에서 띄우자마자 크롤링 후 자동 종료
+APP_MODE = os.environ.get("APP_MODE", "BATCH")
 
 print(f"--- [시스템] 서버 모드: {APP_MODE} ---")
-print("--- [디버그] Flask 서버 실행 시도 중 ---")
 
 if APP_MODE == "DEV":
     # 앱 구동 시 DB 테이블 자동 생성
     print("--- [디버그] 개발 모드: DB 테이블 자동 생성 시도 ---")
     init_db()
     print("--- [디버그] DB 초기화 완료, 라우트 정의 시작 ---")
+elif APP_MODE == "BATCH":
+    print("--- [시스템] BATCH 모드: 즉시 크롤링 실행 후 종료합니다. ---")
 else:
+    # 운영 모드 등
     print("--- [시스템] 운영 모드: DB 초기화 과정을 생략합니다. ---")
 
 def process_and_alarm(item):
@@ -58,7 +62,6 @@ def health_check():
 
 @app.route("/python/scrape", methods=["GET"])
 def trigger_scraper():
-
     print("--------------------------------------------------")
     print(">>> [디버그] /scrape 라우트 진입 성공! <<<")
     print("--------------------------------------------------")
@@ -102,6 +105,32 @@ def trigger_scraper():
         traceback.print_exc()  # 에러 위치와 원인을 아주 상세히 출력함
         return jsonify({"status": "error", "message": str(e)}), 500
 
+def run_batch_task():
+    """배치 모드에서 크롤링 로직을 수행하고 프로세스를 종료하는 함수"""
+    try:
+        result_data = run_scraper()
+        if result_data is None: result_data = []
+        
+        new_inserted_count = 0
+        if isinstance(result_data, list):
+            for item in result_data:
+                if process_and_alarm(item):
+                    new_inserted_count += 1
+        elif isinstance(result_data, dict):
+            if process_and_alarm(result_data):
+                new_inserted_count += 1
+        
+        print(f">>> [시스템] 배치 작업 완료: 신규 {new_inserted_count}건 등록.")
+    except Exception as e:
+        print("🚨🚨 배치 작업 중 상세 에러 발생 🚨🚨")
+        traceback.print_exc()
+        sys.exit(1) # 에러 시 1로 종료
+    
+    sys.exit(0) # 성공 시 0으로 종료하여 ECS 컨테이너를 정지시킴
+
 if __name__ == "__main__":
-    # 포트 8080은 root 권한이 필요하므로, ECS 환경에 맞게 8080으로 설정했습니다.
-    app.run(host="0.0.0.0", port=8080, debug=False)
+    if APP_MODE == "BATCH":
+        run_batch_task()
+    else:
+        # 포트 8080은 root 권한이 필요하므로, ECS 환경에 맞게 8080으로 설정했습니다.
+        app.run(host="0.0.0.0", port=8080, debug=False)
