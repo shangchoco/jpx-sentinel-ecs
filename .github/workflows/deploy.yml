@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 1. AWS 인증 (GitHub Secrets에 저장한 키를 사용합니다)
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -23,9 +23,18 @@ jobs:
       # 2. ECR 로그인
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'true'
 
-      # 3-1. 첫 번째 도커 이미지 빌드 및 푸시 (jpx-java)
+      # 3. Java 프로젝트 빌드 (이미지 빌드 전 필수 단계: jar 파일 생성)
+      - name: Build Java with Gradle
+        working-directory: backend
+        run: |
+          chmod +x gradlew
+          ./gradlew build
+
+      # 4-1. 첫 번째 도커 이미지 빌드 및 푸시 (jpx-java)
       # backend 폴더 내의 Dockerfile을 사용하여 빌드합니다.
       - name: Build, tag, and push first image to ECR
         env:
@@ -36,7 +45,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/Dockerfile ./backend
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 3-2. 두 번째 도커 이미지 빌드 및 푸시 (jpx-python)
+      # 4-2. 두 번째 도커 이미지 빌드 및 푸시 (jpx-python)
       # 프로젝트 루트(.)의 Dockerfile을 사용하여 빌드합니다.
       - name: Build, tag, and push second image to ECR
         env:
@@ -47,7 +56,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 4. ECS 서비스 업데이트 (새 이미지로 교체)
+      # 5. ECS 서비스 업데이트 (새 이미지로 교체)
       # 두 리포지토리 중 하나라도 새 이미지가 반영되어야 하므로 서비스 강제 재배포를 수행합니다.
       - name: Update ECS service
         run: |
