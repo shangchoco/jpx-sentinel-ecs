@@ -4,10 +4,12 @@
 
 # 테라폼 상태 파일 무시 (중요한 정보가 들어있을 수 있음)
 .terraform/
-*.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
 secret.tfvars
+terraform/tfplan
+terraform/terraform.tfstate*
+*.tfstate*
 
 # Python 관련
 __pycache__/
@@ -28,3 +30,10 @@ bin/
 __pycache__/
 *.pyc
 .idea/
+
+# IDE 설정 파일
+.idea/
+
+# 빌드 아티팩트 및 실행 파일
+*.jar
+

@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import pymysql
 import pymysql.cursors
@@ -9,10 +10,15 @@ def get_db_connection(include_db=True):
     retry_interval = 2   # 2초 간격으로 시도 (총 20초 대기)
 
     #host 및 접속 정보를 환경 변수에서 가져오도록 변경 (운영 환경 대응)
-    rds_host = os.environ.get('DB_HOST', 'terraform-20260525123822698800000001.cxsu6ggc65n5.ap-northeast-1.rds.amazonaws.com')
-    db_user = os.environ.get('DB_USER', 'admin')
-    db_password = os.environ.get('DB_PASSWORD', 'Password123!')
-    db_name = os.environ.get('DB_NAME', 'jpx_database')
+    # 환경 변수가 없으면 에러를 발생시키고 종료
+    rds_host = os.environ.get('DB_HOST')
+    db_user = os.environ.get('DB_USER')
+    db_password = os.environ.get('DB_PASSWORD')
+    db_name = os.environ.get('DB_NAME')
+
+    if not all([rds_host, db_user, db_password, db_name]):
+        print("Error: 필수 환경 변수(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)가 설정되지 않았습니다.")
+        sys.exit(1) # 프로그램 종료
     
     for attempt in range(max_retries):
         try:
