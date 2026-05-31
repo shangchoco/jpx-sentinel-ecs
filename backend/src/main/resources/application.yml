@@ -3,14 +3,19 @@ server:
 
 spring:
   datasource:
-    # RDS 엔드포인트가 적용된 URL입니다.
+    # 💡 RDSエンドポイント設定 (本番環境では環境変数を使用して値を注入してください)
     url: jdbc:mysql://terraform-20260525123822698800000001.cxsu6ggc65n5.ap-northeast-1.rds.amazonaws.com:3306/jpx_database?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Tokyo
+    
+    # ⚠️ セキュリティ注意: パスワード等の機密情報はGitHubにアップロードしないように
     username: admin
-    password: Password123!
+    password: Password123! 
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    # データベースプラットフォーム設定
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
+      # スキーマの検証のみ実行（本番環境でのデータ消失を防ぐため）
       ddl-auto: validate
+    # SQLログの表示設定
     show-sql: true

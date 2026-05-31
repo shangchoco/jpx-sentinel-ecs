@@ -1,4 +1,4 @@
-# 1. 최신 Amazon Linux 2023 AMI 자동 조회 (리전별 자동 매핑)
+# 1. 最新の Amazon Linux 2023 AMI を自動取得 (リージョン別に自動マッピング)
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -9,7 +9,7 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
-# 2. Bastion Host용 보안 그룹: 외부(0.0.0.0/0)에서 SSH(22) 접속만 허용
+# 2. Bastion Host 用セキュリティグループ: 外部からSSH(22)接続のみ許可
 resource "aws_security_group" "bastion_sg" {
   name   = "jpx-bastion-sg"
   vpc_id = module.vpc.vpc_id
@@ -18,7 +18,8 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # 보안을 위해 실제 본인 공인 IP로 좁히는 것을 권장합니다.
+    # セキュリティのため、実際のパブリックIPのみ許可することを推奨
+    cidr_blocks = ["153.240.19.142/32"] 
   }
 
   egress {
@@ -29,16 +30,16 @@ resource "aws_security_group" "bastion_sg" {
   }
 }
 
-# 3. Bastion EC2 인스턴스 생성: 퍼블릭 서브넷에 배치하여 점프 서버 역할 수행
+# 3. Bastion EC2 インスタンス作成: パブリックサブネットに配置し、ジャンプサーバーとして運用
 resource "aws_instance" "bastion" {
   ami           = data.aws_ami.amazon_linux_2023.id 
   instance_type = "t3.micro"
-  subnet_id     = module.vpc.public_subnets[0] # 퍼블릭 서브넷에 배치
+  subnet_id     = module.vpc.public_subnets[0] # パブリックサブネットへ配置
 
   associate_public_ip_address = true
 
   vpc_security_group_ids = [aws_security_group.bastion_sg.id]
-  key_name      = "my-key-pair" # 미리 생성한 키 페어 이름
+  key_name      = "my-key-pair" # 事前に作成済みのキーペア名
 
   tags = { Name = "jpx-bastion" }
 }

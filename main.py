@@ -1,6 +1,6 @@
 import os
 import traceback
-import sys  # 추가: 프로세스 종료를 위해 필요
+import sys
 from flask import Flask, jsonify
 from scraper import run_scraper
 from database import init_db, save_to_db
@@ -9,36 +9,35 @@ from slack_alarm import send_slack_alarm
 app = Flask(__name__)
 app.json.ensure_ascii = False
 
-# [운영 환경 제어] ECS 환경 변수에서 MODE를 읽어와 DB 초기화 여부를 결정합니다.
-# PRODUCTION 모드에서는 DB 초기화를 건너뛰어 안정성을 확보합니다.
-# BATCH 모드 추가: ECS에서 띄우자마자 크롤링 후 자동 종료
+# [運用環境制御] ECS環境変数からMODEを読み取り、DB初期化の可否を決定
+# PRODUCTIONモードではDB初期化をスキップして安定性を確保
+# BATCHモード追加: ECS起動時にクロール実行後、自動終了
 APP_MODE = os.environ.get("APP_MODE", "BATCH")
 
-print(f"--- [시스템] 서버 모드: {APP_MODE} ---")
+print(f"--- [システム] サーバーモード: {APP_MODE} ---")
 
 if APP_MODE == "DEV":
-    # 앱 구동 시 DB 테이블 자동 생성
-    print("--- [디버그] 개발 모드: DB 테이블 자동 생성 시도 ---")
+    # アプリ起動時にDBテーブルを自動生成
+    print("--- [デバッグ] 開発モード: DBテーブル自動生成を試行 ---")
     init_db()
-    print("--- [디버그] DB 초기화 완료, 라우트 정의 시작 ---")
+    print("--- [デバッグ] DB初期化完了、ルート定義開始 ---")
 elif APP_MODE == "BATCH":
-    print("--- [시스템] BATCH 모드: 즉시 크롤링 실행 후 종료합니다. ---")
+    print("--- [システム] BATCHモード: 直ちにクロールを実行し終了します。 ---")
 else:
-    # 운영 모드 등
-    print("--- [시스템] 운영 모드: DB 초기화 과정을 생략합니다. ---")
+    # 運用モード等
+    print("--- [システム] 運用モード: DB初期化プロセスをスキップします。 ---")
 
 def process_and_alarm(item):
     """
-    개별 종목 데이터를 DB에 저장을 시도하고, 
-    새로 저장된(신규) 데이터일 경우에만 슬랙 알림을 발송하는 헬퍼 함수
+    個別銘柄データのDB保存を試行し、新規データの場合のみSlack通知を送信するヘルパー関数
     """
     if not isinstance(item, dict):
         return False
 
-    # 1. DB 저장 시도 (save_to_db가 신규 저장 성공 시 True, 중복 무시 시 False를 리턴한다고 가정)
+    # 1. DB保存を試行 (新規保存成功時にTrue、重複時はFalseを返却)
     is_new_inserted = save_to_db(item)
     
-    # 2. 💡 오직 신규로 등록된 데이터일 때만 슬랙 알림 트리거 (중복 데이터면 알림 안 감)
+    # 2. 新規登録データのみSlack通知をトリガー
     if is_new_inserted:
         news_link = item.get('news_url')
         code = item.get('stock_code', '0000')
@@ -47,14 +46,14 @@ def process_and_alarm(item):
             news_link = f"https://www.jpx.co.jp/listing/stocks/show?code={code}"
 
         send_slack_alarm(
-            stock_name=item.get('stock_name', '이름 없음'),
+            stock_name=item.get('stock_name', '名称不明'),
             stock_code=code,    
-            delisting_date=item.get('delisting_date', '날짜 정보 없음'),
+            delisting_date=item.get('delisting_date', '日付情報なし'),
             link=news_link
         )
-        return True # 신규 등록 성공 표시
+        return True # 新規登録成功
         
-    return False # 중복 데이터였음
+    return False # 重複データ
 
 @app.route("/", methods=["GET"])
 def health_check():
@@ -63,22 +62,21 @@ def health_check():
 @app.route("/python/scrape", methods=["GET"])
 def trigger_scraper():
     print("--------------------------------------------------")
-    print(">>> [디버그] /scrape 라우트 진입 성공! <<<")
+    print(">>> [デバッグ] /scrape ルートへ進入成功！ <<<")
     print("--------------------------------------------------")
     
     try:
-        # 이 부분이 실행되는지 확인
-        print(">>> [디버그] /scrape 라우트 호출됨!", flush=True) # 이것도 찍히는지 확인
+        print(">>> [デバッグ] /scrape ルート呼び出し！", flush=True)
         result_data = run_scraper()
-        print(f">>> [디버그] run_scraper 완료, 결과: {result_data}")
+        print(f">>> [デバッグ] run_scraper完了、結果: {result_data}")
 
-        # 2. 결과값이 None일 경우 빈 리스트로 초기화 (에러 방지)
+        # 結果がNoneの場合は空リストで初期化（エラー回避）
         if result_data is None:
             result_data = []
 
         new_inserted_count = 0
         
-        # 3. 데이터가 리스트인지 확인하고 순회
+        # データがリスト形式か確認して順次処理
         if isinstance(result_data, list):
             for item in result_data:
                 if process_and_alarm(item):
@@ -87,26 +85,25 @@ def trigger_scraper():
             if process_and_alarm(result_data):
                 new_inserted_count += 1
         elif isinstance(result_data, str):
-            send_slack_alarm(result_data, "정보 없음", "정보 없음", link=None)
+            send_slack_alarm(result_data, "情報なし", "情報なし", link=None)
 
-        # 4. 응답 구성 시 len() 안전하게 호출
         total_scraped = len(result_data) if isinstance(result_data, list) else 1
         
         return jsonify({
             "status": "success",
-            "message": f"오늘 자 신규 공시 {new_inserted_count}건 등록.",
+            "message": f"本日の新規公示 {new_inserted_count} 件登録。",
             "total_scraped": total_scraped,
             "new_inserted": new_inserted_count
         })
         
     except Exception as e:
-        # 5. [핵심] 500 에러 발생 시 상세 에러 내용을 터미널에 무조건 출력
-        print("🚨🚨 상세 에러 발생 🚨🚨")
-        traceback.print_exc()  # 에러 위치와 원인을 아주 상세히 출력함
+        # [重要] 500エラー発生時の詳細エラー内容をターミナルに出力
+        print("🚨🚨 詳細エラー発生 🚨🚨")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
 def run_batch_task():
-    """배치 모드에서 크롤링 로직을 수행하고 프로세스를 종료하는 함수"""
+    """バッチモードでクロール処理を実行し、プロセスを終了する関数"""
     try:
         result_data = run_scraper()
         if result_data is None: result_data = []
@@ -120,17 +117,17 @@ def run_batch_task():
             if process_and_alarm(result_data):
                 new_inserted_count += 1
         
-        print(f">>> [시스템] 배치 작업 완료: 신규 {new_inserted_count}건 등록.")
+        print(f">>> [システム] バッチ作業完了: 新規 {new_inserted_count} 件登録。")
     except Exception as e:
-        print("🚨🚨 배치 작업 중 상세 에러 발생 🚨🚨")
+        print("🚨🚨 バッチ作業中に詳細エラー発生 🚨🚨")
         traceback.print_exc()
-        sys.exit(1) # 에러 시 1로 종료
+        sys.exit(1) # エラー時終了コード 1
     
-    sys.exit(0) # 성공 시 0으로 종료하여 ECS 컨테이너를 정지시킴
+    sys.exit(0) # 成功時終了コード 0 (ECSコンテナ停止用)
 
 if __name__ == "__main__":
     if APP_MODE == "BATCH":
         run_batch_task()
     else:
-        # 포트 8080은 root 권한이 필요하므로, ECS 환경에 맞게 8080으로 설정했습니다.
+        # ECS環境に適したポート 8080 で実行
         app.run(host="0.0.0.0", port=8080, debug=False)

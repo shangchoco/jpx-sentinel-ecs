@@ -19,30 +19,32 @@ public class JpxTestController {
         this.repository = repository;
     }
 
+    // DB接続テスト用エンドポイント
     @GetMapping("/test-db")
     public List<DelistingNews> testDbConnection() {
         return repository.findAll();
     }
 
-    // 💡 엑셀 다운로드 API 추가
+    // 削除銘柄リストをExcel形式でダウンロードするAPI
     @GetMapping("/download-excel")
     public void downloadExcel(HttpServletResponse response) throws IOException {
-        // 1. DB에서 데이터 전부 긁어오기
+        // 1. DBから全データを取得
         List<DelistingNews> list = repository.findAll();
 
-        // 2. 가상의 엑셀 파일(Workbook) 생성
+        // 2. ワークブック(Excelファイル)の生成
         try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("상장폐지 목록");
+            // シート名: 上場廃止銘柄一覧
+            Sheet sheet = workbook.createSheet("上場廃止銘柄一覧");
 
-            // 3. 헤더 행(첫 번째 줄) 만들기
+            // 3. ヘッダー行の作成
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"ID", "종목코드", "종목명", "시장구분", "상장폐지일", "정리매매 시작일", "정리매매 종료일"};
+            String[] headers = {"ID", "銘柄コード", "銘柄名", "市場区分", "上場廃止日", "整理銘柄開始日", "整理銘柄終了日"};
             for (int i = 0; i < headers.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
             }
 
-            // 4. DB 데이터를 한 줄씩 엑셀에 채워넣기
+            // 4. DBデータをExcelに書き出し
             int rowNum = 1;
             for (DelistingNews news : list) {
                 Row row = sheet.createRow(rowNum++);
@@ -55,18 +57,18 @@ public class JpxTestController {
                 row.createCell(6).setCellValue(news.getCleanupEndDate());
             }
 
-            // 💡 여기에 추가: 모든 데이터가 들어간 후 열 너비를 자동으로 맞춤
+            // 5. カラム幅の自動調整
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
-                // 자동 조절된 너비에 256(한 글자 정도)만큼 여유를 더 줌
+                // 自動調整後の幅に少し余裕を持たせる
                 sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 512);
             }
 
-            // 5. 브라우저에게 "이 데이터는 엑셀 파일이다"라고 알려주는 설정 (HTTP 헤더)
+            // 6. レスポンスの設定（Excelファイルとしてブラウザに送信）
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=delisting_news.xlsx");
+            response.setHeader("Content-Disposition", "attachment; filename=delisting_list.xlsx");
 
-            // 6. 브라우저로 파일 전송하기
+            // 7. ブラウザへファイル出力
             workbook.write(response.getOutputStream());
         }
     }

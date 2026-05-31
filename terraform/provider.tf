@@ -1,4 +1,4 @@
-# AWS 제공자 설정
+# AWS プロバイダー設定
 terraform {
   required_providers {
     aws = {
@@ -8,7 +8,7 @@ terraform {
   }
 }
 
-# 도쿄 리전으로 설정
+# 東京リージョンを指定
 provider "aws" {
   region = "ap-northeast-1"
 }

@@ -1,29 +1,28 @@
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.8.0" # 최신 안정 버전
+  version = "5.8.0" # 最新の安定バージョン
 
   name = "jpx-project-vpc"
   cidr = "10.0.0.0/16"
 
-  # 일본(도쿄) 리전의 2개 가용 영역 사용
+  # 東京リージョンの2つのアベイラビリティーゾーンを使用
   azs             = ["ap-northeast-1a", "ap-northeast-1c"]
   
-  # 퍼블릭 서브넷 (ALB용)
+  # パブリックサブネット (ALB用)
   public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
   
-  # 프라이빗 서브넷 (ECS/RDS용)
+  # プライベートサブネット (ECS用)
   private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
 
-  # --- 추가된 부분 ---
+  # データベースサブネット (RDS用)
   database_subnets = ["10.0.5.0/24", "10.0.6.0/24"]
-  create_database_subnet_group = true # RDS가 이 서브넷 그룹을 사용하도록 설정
-  # ------------------
+  create_database_subnet_group = true # RDSがこのサブネットグループを参照するように設定
 
-  # NAT 게이트웨이 활성화 (프라이빗 서브넷의 인터넷 통신용)
+  # NATゲートウェイの有効化 (プライベートサブネットからのインターネット通信用)
   enable_nat_gateway = true
-  single_nat_gateway = true # 비용 절감을 위해 하나만 생성 (운영 환경에선 멀티 사용)
+  single_nat_gateway = true # コスト削減のため1つのみ作成 (本番環境では冗長化を推奨)
 
-  # 태그 지정 (AWS 리소스 관리 효율화)
+  # タグ付け (AWSリソース管理の効率化)
   tags = {
     Environment = "dev"
     Project     = "jpx-delisting"

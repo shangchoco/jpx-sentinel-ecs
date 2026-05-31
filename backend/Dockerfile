@@ -1,17 +1,17 @@
-# [실행 전용 환경]
-# 로컬에서 빌드된 JAR 파일을 바로 실행하기 위해 가벼운 JRE 환경을 사용합니다.
+# [実行専用環境]
+# ローカルでビルドされたJARファイルを実行するための軽量なJRE環境
 FROM eclipse-temurin:17-jre-alpine
 
-# 컨테이너 내부의 작업 디렉토리를 /app으로 설정합니다.
+# コンテナ内部の作業ディレクトリを /app に設定
 WORKDIR /app
 
-# [중요] 아까 만드신 .jar 파일을 컨테이너 내부로 복사합니다.
-# 로컬 경로: build/libs/backend-0.0.1-SNAPSHOT.jar
-# 컨테이너 경로: /app/app.jar
+# [重要] ビルド済みのJARファイルをコンテナ内部へコピー
+# ローカルパス: build/libs/backend-0.0.1-SNAPSHOT.jar
+# コンテナパス: /app/app.jar
 COPY backend/build/libs/backend-0.0.1-SNAPSHOT.jar app.jar
 
-# 컨테이너가 외부로 노출할 포트
+# コンテナが外部に公開するポート番号
 EXPOSE 8080
 
-# 애플리케이션 실행 명령
+# アプリケーションの実行コマンド
 ENTRYPOINT ["java", "-jar", "app.jar"]

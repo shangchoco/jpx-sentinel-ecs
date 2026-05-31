@@ -63,7 +63,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["153.240.19.142/32"]
+    cidr_blocks = [aws_security_group.bastion_sg.id]
   }
 
   egress {

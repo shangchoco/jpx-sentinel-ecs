@@ -1,16 +1,17 @@
 resource "aws_db_instance" "default" {
-  allocated_storage    = 20
-  db_name              = "jpxdb"
-  engine               = "mysql"
-  engine_version       = "8.0"
-  instance_class       = "db.t3.micro" # 프리티어 범위
-  username             = var.db_username
-  password             = var.db_password # 실제 사용 시에는 AWS Secrets Manager 등을 써야 합니다!
-  skip_final_snapshot  = true
+  allocated_storage     = 20
+  db_name               = "jpxdb"
+  engine                = "mysql"
+  engine_version        = "8.0"
+  instance_class        = "db.t3.micro" # AWS無料利用枠の範囲内
+  username              = var.db_username
+  password              = var.db_password # 本番環境ではAWS Secrets Manager等の利用を推奨
+  skip_final_snapshot   = true
 
+  # セキュリティ強化のため、パブリックアクセスを無効化
   publicly_accessible = false
 
-  # 앞서 만든 보안 그룹과 서브넷 그룹 연결
+  # セキュリティグループおよびサブネットグループの紐付け
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = module.vpc.database_subnet_group_name
 

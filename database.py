@@ -5,20 +5,23 @@ import pymysql
 import pymysql.cursors
 
 def get_db_connection(include_db=True):
-    """MySQL 연결을 반환합니다. (DB 부팅 대기용 재시도 로직 포함)"""
-    max_retries = 10     # 최대 10번 재시도
-    retry_interval = 2   # 2초 간격으로 시도 (총 20초 대기)
+    """
+    MySQL接続オブジェクトを返却する。
+    DB起動待ちのための再試行（リトライ）ロジックを含む。
+    """
+    max_retries = 10     # 最大リトライ回数
+    retry_interval = 2   # リトライ間隔（秒）
 
-    #host 및 접속 정보를 환경 변수에서 가져오도록 변경 (운영 환경 대응)
-    # 환경 변수가 없으면 에러를 발생시키고 종료
+    # 環境変数から接続情報を取得（運用環境への対応）
     rds_host = os.environ.get('DB_HOST')
     db_user = os.environ.get('DB_USER')
     db_password = os.environ.get('DB_PASSWORD')
     db_name = os.environ.get('DB_NAME')
 
+    # 必須環境変数のチェック
     if not all([rds_host, db_user, db_password, db_name]):
-        print("Error: 필수 환경 변수(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)가 설정되지 않았습니다.")
-        sys.exit(1) # 프로그램 종료
+        print("エラー: 必須環境変数(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)が設定されていません。")
+        sys.exit(1)
     
     for attempt in range(max_retries):
         try:
@@ -27,23 +30,25 @@ def get_db_connection(include_db=True):
                 user=db_user,
                 password=db_password,
                 database=db_name if include_db else None,
-                charset='utf8mb4',  # 일본어 깨짐 방지 세팅
+                charset='utf8mb4',  # 日本語文字化け防止用設定
                 cursorclass=pymysql.cursors.DictCursor
             )
-            return conn  # 연결 성공 시 즉시 커넥션 반환
+            return conn
             
         except pymysql.err.OperationalError as e:
-            # 아직 DB가 준비 안 된 경우 (Connection refused 등)
+            # まだDBが準備できていない場合（Connection refused等）
             if attempt < max_retries - 1:
-                print(f"⏳ [대기] DB 서버가 준비 중입니다... ({attempt + 1}/{max_retries}) {retry_interval}초 후 다시 시도합니다.")
+                print(f"⏳ [待機] DBサーバー準備中... ({attempt + 1}/{max_retries}) {retry_interval}秒後に再試行します。")
                 time.sleep(retry_interval)
             else:
-                print("❌ [실패] DB 연결 최대 재시도 횟수를 초과했습니다.")
+                print("❌ [失敗] DB接続の最大リトライ回数を超えました。")
                 raise e
 
 def init_db():
-    """앱이 켜질 때 DB와 테이블을 자동으로 초기화하고 생성합니다."""
-    # 1. 데이터베이스가 없으면 생성
+    """
+    アプリケーション起動時にDBおよびテーブルを自動初期化・生成する。
+    """
+    # 1. データベースが存在しない場合は作成
     conn = get_db_connection(include_db=False)
     try:
         with conn.cursor() as cursor:
@@ -56,7 +61,7 @@ def init_db():
     finally:
         conn.close()
 
-    # 2. 테이블 생성 (💡 news_url 컬럼 추가)
+    # 2. テーブル生成（ニュースURLカラムを追加）
     conn = get_db_connection(include_db=True)
     try:
         with conn.cursor() as cursor:
@@ -69,30 +74,32 @@ def init_db():
                     delisting_date VARCHAR(50),
                     cleanup_start_date VARCHAR(50),
                     cleanup_end_date VARCHAR(50),
-                    news_url VARCHAR(255), -- 👈 [변경] 실제 공시 링크를 보관할 컬럼 추가
+                    news_url VARCHAR(255), -- 公式発表リンク用カラム
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE KEY unique_stock (stock_code, delisting_date) -- 중복 방지 제약조건
+                    UNIQUE KEY unique_stock (stock_code, delisting_date) -- 重複防止制約
                 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
             """)
         conn.commit()
-        print("💡 [성공] 깨짐방지용 데이터베이스 및 테이블 초기화 완료!")
+        print("💡 [成功] データベースおよびテーブルの初期化完了！")
     except Exception as e:
-        print(f"❌ DB 초기화 중 에러 발생: {e}")
+        print(f"❌ DB初期化中にエラー発生: {e}")
     finally:
         conn.close()
 
 def save_to_db(data):
-    """스크래핑한 데이터를 DB에 안전하게 저장하고, 신규 데이터면 True, 중복이면 False 반환"""
+    """
+    スクレイピングデータをDBに保存する。
+    新規データならTrue、重複等の理由で保存されなければFalseを返却。
+    """
     
-    # [방어 로직] 들여쓰기 확인! (함수 내부로 4칸 들어와야 합니다)
+    # [防御ロジック] 不正なデータ（上場廃止関連の注釈等）のフィルタリング
     if any(keyword in data.get('stock_name', '') for keyword in ["指定しました", "上場廃止"]):
-        print(f"❌ [오염 데이터 차단] stock_code: {data.get('stock_code')} - 저장 시도 차단됨")
+        print(f"❌ [汚染データ遮断] stock_code: {data.get('stock_code')} - 保存処理をスキップ")
         return False
 
     conn = get_db_connection(include_db=True)
     try:
         with conn.cursor() as cursor:
-            # 💡 news_url 컬럼과 매핑값(%s) 추가
             sql = """
                 INSERT IGNORE INTO delisting_news 
                 (stock_code, stock_name, market_type, delisting_date, cleanup_start_date, cleanup_end_date, news_url) 
@@ -105,15 +112,15 @@ def save_to_db(data):
                 data.get('delisting_date'),
                 data.get('cleanup_start_date'),
                 data.get('cleanup_end_date'),
-                data.get('news_url') # 👈 [변경] 스크래퍼가 가져온 URL 매핑
+                data.get('news_url')
             ))
             conn.commit()
             
-            # 실제로 삽입된 행이 1개면 신규 데이터(True), 중복되어 무시되면 0이므로 (False) 반환
+            # 実際に挿入された行が1であれば新規データ（True）、重複していれば0（False）
             return cursor.rowcount > 0 
             
     except Exception as e:
-        print(f"❌ DB 저장 중 에러 발생: {e}")
+        print(f"❌ DB保存中にエラー発生: {e}")
         return False
     finally:
         conn.close()
