@@ -1,3 +1,5 @@
+import time
+import socket
 import os
 import traceback
 import sys
@@ -26,6 +28,25 @@ elif APP_MODE == "BATCH":
 else:
     # 運用モード等
     print("--- [システム] 運用モード: DB初期化プロセスをスキップします。 ---")
+
+def wait_for_selenium(host='localhost', port=4444, timeout=60):
+    """
+    Seleniumサーバーが起動し、接続可能になるまで待機する関数
+    ECSタスク起動時のRace Condition（競合状態）を防止するために使用
+    """
+    print(f"⏳ [待機] Seleniumサーバー({host}:{port})の接続準備を待機中...")
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            # 指定されたポートにソケット接続を試みる
+            with socket.create_connection((host, port), timeout=2):
+                print("✅ [成功] Seleniumサーバーへの接続を確認しました。")
+                return True
+        except (ConnectionRefusedError, OSError):
+            # 接続拒否された場合はサーバーが未起動と判断し、2秒間隔でリトライ
+            time.sleep(2)
+    print("❌ [失敗] Seleniumサーバーへの接続がタイムアウトしました。")
+    return False
 
 def process_and_alarm(item):
     """
@@ -104,6 +125,11 @@ def trigger_scraper():
 
 def run_batch_task():
     """バッチモードでクロール処理を実行し、プロセスを終了する関数"""
+    # [追加] Seleniumサーバーが起動するまで待機する
+    if not wait_for_selenium():
+        print("🚨 [終了] Seleniumサーバーが起動しないため、バッチ処理を中断します。")
+        sys.exit(1)
+
     try:
         result_data = run_scraper()
         if result_data is None: result_data = []
