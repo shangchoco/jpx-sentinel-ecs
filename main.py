@@ -108,6 +108,10 @@ def trigger_scraper():
         elif isinstance(result_data, str):
             send_slack_alarm(result_data, "情報なし", "情報なし", link=None)
 
+        # [追加] 新規登録データがない場合、正常稼働報告をSlackへ通知
+        if new_inserted_count == 0:
+            send_slack_alarm(is_no_data=True)
+
         total_scraped = len(result_data) if isinstance(result_data, list) else 1
         
         return jsonify({
@@ -147,8 +151,13 @@ def run_batch_task():
             if process_and_alarm(result_data):
                 new_inserted_count += 1
         
+        # [追加] 新規登録データがない場合、正常稼働報告をSlackへ通知
+        if new_inserted_count == 0:
+            send_slack_alarm(is_no_data=True)
+
         print(f">>> [システム] バッチ作業完了: 新規 {new_inserted_count} 件登録。")
     except Exception as e:
+        # [追加] バッチ作業中のエラーキャッチ
         print("🚨🚨 バッチ作業中に詳細エラー発生 🚨🚨")
         traceback.print_exc()
         sys.exit(1) # エラー時終了コード 1
