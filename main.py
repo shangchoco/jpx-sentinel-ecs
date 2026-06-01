@@ -126,6 +126,8 @@ def trigger_scraper():
 def run_batch_task():
     """バッチモードでクロール処理を実行し、プロセスを終了する関数"""
     # [追加] Seleniumサーバーが起動するまで待機する
+    # デバッグ用：環境変数が正しく設定されているかログで確認
+    print(f"--- [DEBUG] DB_HOST 設定確認: {os.environ.get('DB_HOST')} ---")
     if not wait_for_selenium():
         print("🚨 [終了] Seleniumサーバーが起動しないため、バッチ処理を中断します。")
         sys.exit(1)
