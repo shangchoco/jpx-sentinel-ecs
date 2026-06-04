@@ -53,7 +53,7 @@ services:
       - "8080:8080" # ローカルからのアクセス用ポート開放
     depends_on:
       db:
-        # DBが完全に稼働（Healthy）するまで、バックエンドの起動を待機させる
+        # DBが完全に稼働（Healthy）するまで、バックエンドの起動を待機させる by. Henry
         condition: service_healthy
 
 volumes:
