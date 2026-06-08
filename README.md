@@ -55,9 +55,14 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 
 
 
-<img width="804" height="324" alt="image" src="https://github.com/user-attachments/assets/7cdaf97f-4322-4bc1-a2f0-978a566759b4" />
+## システム構成のポイント
 
-
+- EventBridge Scheduler により ECS タスクを定期実行
+- Selenium を利用して JPX 公開情報を取得・解析
+- MySQL の UNIQUE 制約による重複データ登録防止
+- 新規データ検知時のみ Slack 通知を送信
+- Spring Boot API から Excel レポートを出力
+- Docker コンテナ化し ECS Fargate 上で運用
 
 
 ## 処理シーケンス
