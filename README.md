@@ -76,22 +76,23 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 
 ## ディレクトリ構成
 
+```text
 jpx-sentinel-ecs/
 ├── .github/
 │   └── workflows/           # GitHub Actions CI/CD
-├── backend/                # Spring Boot API
-├── docs/                   # 設計書・アーキテクチャ資料
-├── terraform/              # AWS IaC 定義
-├── Dockerfile              # Python Collector コンテナ
-├── docker-compose.yml      # ローカル開発環境
-├── main.py                 # Flask アプリケーション
-├── scraper.py              # JPX 情報収集ロジック
-├── database.py             # DB 接続・保存処理
-├── init_db.py              # DB 初期化
-├── slack_alarm.py          # Slack 通知処理
-├── README.md               # プロジェクト概要
-└── requirements.txt        # Python ライブラリ
-
+├── backend/                 # Spring Boot API
+├── docs/                    # 設計書・アーキテクチャ資料
+├── terraform/               # AWS IaC 定義
+├── Dockerfile               # Python Collector コンテナ
+├── docker-compose.yml       # ローカル開発環境
+├── main.py                  # Flask アプリケーション
+├── scraper.py               # JPX 情報収集ロジック
+├── database.py              # DB 接続・保存処理
+├── init_db.py               # DB 初期化
+├── slack_alarm.py           # Slack 通知処理
+├── README.md                # プロジェクト概要
+└── requirements.txt         # Python ライブラリ
+```
 
 ## 技術スタック
 
