@@ -98,7 +98,16 @@ jpx-sentinel-ecs/
 
 
 
-<img width="829" height="470" alt="image" src="https://github.com/user-attachments/assets/d5d759a4-41f0-4efb-a954-21fcc9936d06" />
+| カテゴリ | 技術 |
+|----------|------|
+| Cloud | AWS (VPC, ECS Fargate, RDS, EventBridge, CloudWatch, ECR) |
+| IaC | Terraform |
+| Container | Docker, Docker Compose |
+| Backend | Java, Spring Boot |
+| Data Collection | Python, Selenium, Flask |
+| Database | MySQL 8.0 (Amazon RDS) |
+| Notification | Slack Incoming Webhook |
+| CI/CD | GitHub Actions |
 
 
 
