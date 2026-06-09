@@ -76,13 +76,20 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 - 担当者が即時確認可能
 
 <img width="832" height="167" alt="image" src="https://github.com/user-attachments/assets/c5b5e283-09d3-4d46-8baa-dd57b7f58b58" />
+<img width="1161" height="368" alt="image" src="https://github.com/user-attachments/assets/b7c46df2-5ba4-4aa1-ad43-284edaeca437" />
 
 ② Excel出力結果
 
-銘柄コード、銘柄名、市場区分、上場廃止日、整理銘柄期間などの収集したデータを
-Spring Boot APIからExcel形式で出力できます。
+収集した上場廃止関連データをSpring Boot API経由でExcel形式に出力できます。
 
-
+主な出力項目：
+- 銘柄コード
+- 銘柄名
+- 市場区分
+- 上場廃止日
+- 整理銘柄期間
+  
+  
 <img width="1361" height="32" alt="image" src="https://github.com/user-attachments/assets/8bf00f53-991a-470b-87c5-21b47c678307" />
 <img width="1362" height="32" alt="image" src="https://github.com/user-attachments/assets/2c92dda3-2089-46a8-9cb2-04169abc8726" />
 <img width="832" height="430" alt="image" src="https://github.com/user-attachments/assets/1cc7b122-ea42-47f9-b478-bc74c323e311" />
