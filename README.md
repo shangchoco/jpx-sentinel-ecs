@@ -26,6 +26,7 @@
 
 - [背景・目的](#背景目的)
 - [システム構成](#システム構成)
+- [実行結果](#実行結果)
 - [処理シーケンス](#処理シーケンス)
 - [ディレクトリ構成](#ディレクトリ構成)
 - [技術スタック](#技術スタック)
@@ -64,6 +65,36 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 - Spring Boot API から Excel レポートを出力
 - Docker コンテナ化し ECS Fargate 上で運用
 
+## 実行結果
+
+<img width="538" height="666" alt="image" src="https://github.com/user-attachments/assets/1aefbbec-68ae-43ee-a4db-08da8b7de0b4" />
+<img width="510" height="265" alt="image" src="https://github.com/user-attachments/assets/2241414e-8fae-4009-8224-bd757cddf054" />
+
+① Slack通知結果
+JPXから上場廃止関連の公示を検知
+↓
+Slackへ通知
+↓
+担当者が即時確認可能
+
+<img width="961" height="100" alt="image" src="https://github.com/user-attachments/assets/7d13d256-8cd6-4c5c-beb3-e6d084bd6ae7" />
+<img width="397" height="78" alt="image" src="https://github.com/user-attachments/assets/6dbfeaf3-03e2-4823-aafa-19f3e0f86913" />
+
+② Excel出力結果
+
+銘柄コード、銘柄名、市場区分、上場廃止日、整理銘柄期間などの収集したデータを
+Spring Boot APIからExcel形式で出力できます。
+
+
+<img width="1361" height="32" alt="image" src="https://github.com/user-attachments/assets/8bf00f53-991a-470b-87c5-21b47c678307" />
+<img width="1362" height="32" alt="image" src="https://github.com/user-attachments/assets/2c92dda3-2089-46a8-9cb2-04169abc8726" />
+<img width="832" height="430" alt="image" src="https://github.com/user-attachments/assets/1cc7b122-ea42-47f9-b478-bc74c323e311" />
+
+
+③ ECS稼働状況
+ECS Fargate上で動作確認を実施しました。
+個人開発環境のため通常時は停止し、
+検証時のみ起動する運用としています。
 
 ## 処理シーケンス
 
