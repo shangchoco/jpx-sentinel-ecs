@@ -12,7 +12,7 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: jpx_database
     ports:
       - "3306:3306"
@@ -21,7 +21,7 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       # ヘルスチェック: ルートパスワードを指定してpingを送信
-      test: ["CMD-SHELL", "mysqladmin ping -uroot -prootpassword"]
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 5
