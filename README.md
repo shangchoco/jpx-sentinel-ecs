@@ -107,7 +107,7 @@ ECS Fargate上で動作確認を実施しました。<br>
 
 
 
-<img width="842" height="835" alt="image" src="https://github.com/user-attachments/assets/6b25b7c5-03b3-4f39-a4c4-99bb26527acc" />
+<img width="661" height="655" alt="image" src="https://github.com/user-attachments/assets/268cd87c-547e-497c-8d86-0d84922d1e75" />
 
 
 
