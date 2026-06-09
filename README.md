@@ -68,7 +68,7 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 ## 実行結果
 
 <img width="538" height="666" alt="image" src="https://github.com/user-attachments/assets/1aefbbec-68ae-43ee-a4db-08da8b7de0b4" />
-<img width="510" height="265" alt="image" src="https://github.com/user-attachments/assets/2241414e-8fae-4009-8224-bd757cddf054" />
+<img width="546" height="291" alt="image" src="https://github.com/user-attachments/assets/e5500a3d-54ba-4e25-b13c-c424c3c1a3d7" />
 
 ① Slack通知結果
 JPXから上場廃止関連の公示を検知
