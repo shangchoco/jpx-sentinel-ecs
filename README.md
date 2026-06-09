@@ -95,12 +95,12 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 <br>
   
 <img width="1063" height="57" alt="image" src="https://github.com/user-attachments/assets/d893c28b-cbd9-4848-b335-d7340bf21f1f" />
-<img width="663" height="345" alt="image" src="https://github.com/user-attachments/assets/e0e7f9d6-1f1c-429c-a780-ee37d41ab235" />
+<img width="827" height="526" alt="image" src="https://github.com/user-attachments/assets/b87ec54c-ae15-475a-bca4-f65ff73c3c51" />
 
 ③ ECS稼働状況
-ECS Fargate上で動作確認を実施しました。
-個人開発環境のため通常時は停止し、
-検証時のみ起動する運用としています。
+ECS Fargate上で動作確認を実施しました。<br>
+個人開発環境のため通常時は停止し、<br>
+検証時のみ起動する運用としています。<br>
 
 ## 処理シーケンス
 
