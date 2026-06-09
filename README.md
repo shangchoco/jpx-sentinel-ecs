@@ -75,6 +75,9 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 - Slackへ自動通知
 - 担当者が即時確認可能
 
+
+<br>
+
 <img width="832" height="167" alt="image" src="https://github.com/user-attachments/assets/c5b5e283-09d3-4d46-8baa-dd57b7f58b58" />
 <img width="1161" height="368" alt="image" src="https://github.com/user-attachments/assets/b7c46df2-5ba4-4aa1-ad43-284edaeca437" />
 
@@ -89,11 +92,10 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 - 上場廃止日
 - 整理銘柄期間
   
+<br>
   
-<img width="1361" height="32" alt="image" src="https://github.com/user-attachments/assets/8bf00f53-991a-470b-87c5-21b47c678307" />
-<img width="1362" height="32" alt="image" src="https://github.com/user-attachments/assets/2c92dda3-2089-46a8-9cb2-04169abc8726" />
-<img width="832" height="430" alt="image" src="https://github.com/user-attachments/assets/1cc7b122-ea42-47f9-b478-bc74c323e311" />
-
+<img width="1063" height="57" alt="image" src="https://github.com/user-attachments/assets/d893c28b-cbd9-4848-b335-d7340bf21f1f" />
+<img width="663" height="345" alt="image" src="https://github.com/user-attachments/assets/e0e7f9d6-1f1c-429c-a780-ee37d41ab235" />
 
 ③ ECS稼働状況
 ECS Fargate上で動作確認を実施しました。
