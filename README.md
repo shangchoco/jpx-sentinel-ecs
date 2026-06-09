@@ -17,15 +17,16 @@
 
 ---
 
-## 📂 関連ドキュメント (Reference)
+## 関連ドキュメント (Reference)
 本プロジェクトのシステム詳細仕様、および詳細な設計根拠は以下のドキュメントを参照してください。
 
 - [JPX上場廃止銘柄監視システム_詳細設計書.xlsx](docs/JPX上場廃止銘柄監視システム設計書.xlsx)
 
-## 📌 目次 / Table of Contents
+## 目次 / Table of Contents
 
 - [背景・目的](#背景目的)
 - [システム構成](#システム構成)
+- [実行結果](#実行結果)
 - [処理シーケンス](#処理シーケンス)
 - [ディレクトリ構成](#ディレクトリ構成)
 - [技術スタック](#技術スタック)
@@ -51,39 +52,100 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 * **ECS Fargate:** サーバーレスなコンテナ実行環境
 * **Terraform:** インフラのコード化 (IaC) により再現性を確保
 
-<img width="1372" height="784" alt="Gemini_Generated_Image_sqnbbysqnbbysqnb" src="https://github.com/user-attachments/assets/ece8a447-bc6d-42f2-9ac7-caa41e06ff08" />
+<img width="1036" height="596" alt="image" src="https://github.com/user-attachments/assets/c1d8883b-f415-42d7-8dc9-88fa3093d2a0" />
 
 
 
-<img width="804" height="324" alt="image" src="https://github.com/user-attachments/assets/7cdaf97f-4322-4bc1-a2f0-978a566759b4" />
+## システム構成のポイント
+
+- EventBridge Scheduler により ECS タスクを定期実行
+- Selenium を利用して JPX 公開情報を取得・解析
+- MySQL の UNIQUE 制約による重複データ登録防止
+- 新規データ検知時のみ Slack 通知を送信
+- Spring Boot API から Excel レポートを出力
+- Docker コンテナ化し ECS Fargate 上で運用
+
+## 実行結果
+
+<img width="1084" height="596" alt="image" src="https://github.com/user-attachments/assets/1ba4df14-e964-4ae4-9be7-6512c1ea8b17" />
+<img width="546" height="291" alt="image" src="https://github.com/user-attachments/assets/e5500a3d-54ba-4e25-b13c-c424c3c1a3d7" />
+
+① Slack通知結果
+- JPXから上場廃止関連の公示を検知
+- Slackへ自動通知
+- 担当者が即時確認可能
 
 
+<br>
 
+<img width="832" height="167" alt="image" src="https://github.com/user-attachments/assets/c5b5e283-09d3-4d46-8baa-dd57b7f58b58" />
+<img width="1161" height="368" alt="image" src="https://github.com/user-attachments/assets/b7c46df2-5ba4-4aa1-ad43-284edaeca437" />
+
+② Excel出力結果
+
+収集した上場廃止関連データをSpring Boot API経由でExcel形式に出力できます。
+
+主な出力項目：
+- 銘柄コード
+- 銘柄名
+- 市場区分
+- 上場廃止日
+- 整理銘柄期間
+  
+<br>
+  
+<img width="1063" height="57" alt="image" src="https://github.com/user-attachments/assets/d893c28b-cbd9-4848-b335-d7340bf21f1f" />
+<img width="827" height="526" alt="image" src="https://github.com/user-attachments/assets/b87ec54c-ae15-475a-bca4-f65ff73c3c51" />
+
+③ ECS稼働状況
+
+ECS Fargate上で動作確認を実施しました。<br>
+個人開発環境のため通常時は停止し、<br>
+検証時のみ起動する運用としています。<br>
 
 ## 処理シーケンス
 
 
 
-<img width="842" height="835" alt="image" src="https://github.com/user-attachments/assets/6b25b7c5-03b3-4f39-a4c4-99bb26527acc" />
+<img width="661" height="655" alt="image" src="https://github.com/user-attachments/assets/268cd87c-547e-497c-8d86-0d84922d1e75" />
 
 
 
 
 ## ディレクトリ構成
 
-
-
-<img width="625" height="372" alt="image" src="https://github.com/user-attachments/assets/ef690f9a-8e69-4062-a93f-a4091c0cefd8" />
-
-
-
-
+```text
+jpx-sentinel-ecs/
+├── .github/
+│   └── workflows/           # GitHub Actions CI/CD
+├── backend/                 # Spring Boot API
+├── docs/                    # 設計書・アーキテクチャ資料
+├── terraform/               # AWS IaC 定義
+├── Dockerfile               # Python Collector コンテナ
+├── docker-compose.yml       # ローカル開発環境
+├── main.py                  # Flask アプリケーション
+├── scraper.py               # JPX 情報収集ロジック
+├── database.py              # DB 接続・保存処理
+├── init_db.py               # DB 初期化
+├── slack_alarm.py           # Slack 通知処理
+├── README.md                # プロジェクト概要
+└── requirements.txt         # Python ライブラリ
+```
 
 ## 技術スタック
 
 
 
-<img width="829" height="470" alt="image" src="https://github.com/user-attachments/assets/d5d759a4-41f0-4efb-a954-21fcc9936d06" />
+| カテゴリ | 技術 |
+|----------|------|
+| Cloud | AWS (VPC, ECS Fargate, RDS, EventBridge, CloudWatch, ECR) |
+| IaC | Terraform |
+| Container | Docker, Docker Compose |
+| Backend | Java, Spring Boot |
+| Data Collection | Python, Selenium, Flask |
+| Database | MySQL 8.0 (Amazon RDS) |
+| Notification | Slack Incoming Webhook |
+| CI/CD | GitHub Actions |
 
 
 
