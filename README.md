@@ -52,7 +52,7 @@ JPX 上場廃止情報の**手動確認作業を完全自動化**するために
 * **ECS Fargate:** サーバーレスなコンテナ実行環境
 * **Terraform:** インフラのコード化 (IaC) により再現性を確保
 
-<img width="1372" height="784" alt="Gemini_Generated_Image_sqnbbysqnbbysqnb" src="https://github.com/user-attachments/assets/ece8a447-bc6d-42f2-9ac7-caa41e06ff08" />
+<img width="1036" height="596" alt="image" src="https://github.com/user-attachments/assets/c1d8883b-f415-42d7-8dc9-88fa3093d2a0" />
 
 
 
